@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FemCare Pro - Smart Menstrual Vending Machine</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: radial-gradient(ellipse at center, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .vending-machine {
+            background: linear-gradient(145deg, #f0f2f5, #dde1e7);
+            border: 8px solid #2c3e50;
+            border-radius: 25px;
+            width: 100%;
+            max-width: 420px;
+            padding: 20px;
+            box-shadow: 
+                0 0 40px rgba(0, 0, 0, 0.6),
+                inset 0 0 30px rgba(255, 255, 255, 0.1),
+                0 20px 60px rgba(0, 0, 0, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .vending-machine::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #e91e63, #9c27b0, #673ab7);
+            border-radius: 25px 25px 0 0;
+        }
+
+        .brand-header {
+            text-align: center;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #e91e63, #9c27b0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-family: 'Orbitron', monospace;
+            font-weight: 900;
+            font-size: 1.1em;
+            letter-spacing: 2px;
+            text-shadow: 0 2px 10px rgba(233, 30, 99, 0.3);
+            position: relative;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            font-size: 0.7em;
+            font-weight: 300;
+            margin-top: -5px;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+        }
+
+        .smart-display {
+            background: linear-gradient(145deg, #1a1a2e, #16213e);
+            border: 4px solid #0f3460;
+            border-radius: 15px;
+            padding: 12px;
+            margin-bottom: 18px;
+            box-shadow: 
+                inset 0 0 20px rgba(0, 0, 0, 0.8),
+                0 0 20px rgba(15, 52, 96, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .smart-display::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            animation: scanLine 3s infinite;
+        }
+
+        @keyframes scanLine {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .display-content {
+            color: #00ff88;
+            font-family: 'Orbitron', monospace;
+            font-size: 0.9em;
+            text-align: center;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-shadow: 0 0 15px #00ff88;
+            position: relative;
+            z-index: 1;
+        }
+
+        .status-indicators {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding: 0 10px;
+        }
+
+        .status-led {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .status-led.power { 
+            background: #4CAF50; 
+            box-shadow: 0 0 10px #4CAF50;
+        }
+
+        .status-led.network { 
+            background: #2196F3; 
+            box-shadow: 0 0 10px #2196F3;
+        }
+
+        .status-led.inventory { 
+            background: #FF9800; 
+            box-shadow: 0 0 10px #FF9800;
+        }
+
+        .product-showcase {
+            background: linear-gradient(145deg, #ffffff, #f8f9fa);
+            border: 5px solid #34495e;
+            border-radius: 20px;
+            padding: 15px;
+            margin-bottom: 18px;
+            box-shadow: 
+                inset 0 0 20px rgba(255, 255, 255, 0.9),
+                0 8px 25px rgba(0, 0, 0, 0.2);
+            position: relative;
+            height: 220px;
+            overflow-y: auto;
+        }
+
+        .product-showcase::before {
+            content: '';
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            right: 5px;
+            height: 2px;
+            background: linear-gradient(90deg, #e91e63, #9c27b0, #673ab7, #3f51b5);
+            border-radius: 20px;
+            animation: colorShift 4s infinite;
+        }
+
+        @keyframes colorShift {
+            0% { transform: translateX(-50px); opacity: 0.7; }
+            50% { transform: translateX(0); opacity: 1; }
+            100% { transform: translateX(50px); opacity: 0.7; }
+        }
+
+        .showcase-title {
+            color: #2c3e50;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 0.9em;
+            letter-spacing: 0.5px;
+        }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .premium-product {
+            background: linear-gradient(145deg, #ffffff, #f1f3f4);
+            border: 3px solid transparent;
+            background-clip: padding-box;
+            border-radius: 15px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .premium-product::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #e91e63, #9c27b0, #673ab7, #3f51b5);
+            border-radius: 15px;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .premium-product:hover {
+            transform: translateY(-5px) scale(1.03);
+            box-shadow: 0 12px 35px rgba(233, 30, 99, 0.3);
+        }
+
+        .premium-product:hover::before {
+            opacity: 1;
+        }
+
+        .premium-product.selected {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 15px 40px rgba(156, 39, 176, 0.4);
+        }
+
+        .premium-product.selected::before {
+            opacity: 1;
+            animation: borderGlow 2s infinite alternate;
+        }
+
+        @keyframes borderGlow {
+            0% { background: linear-gradient(45deg, #e91e63, #9c27b0, #673ab7, #3f51b5); }
+            100% { background: linear-gradient(45deg, #ff4081, #ba68c8, #9575cd, #7986cb); }
+        }
+
+        .product-code {
+            position: absolute;
+            top: 8px;
+            left: 10px;
+            background: linear-gradient(135deg, #e91e63, #ad1457);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 8px;
+            font-size: 0.7em;
+            font-weight: 700;
+            font-family: 'Orbitron', monospace;
+            box-shadow: 0 2px 8px rgba(233, 30, 99, 0.4);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 70px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            border: 2px solid #e1e8ed;
+            transition: all 0.3s ease;
+        }
+
+        .premium-product:hover .product-image {
+            transform: scale(1.1);
+            border-color: #e91e63;
+        }
+
+        .product-title {
+            font-size: 0.8em;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+            line-height: 1.2;
+        }
+
+        .product-price {
+            font-size: 0.9em;
+            font-weight: 700;
+            background: linear-gradient(135deg, #4CAF50, #388E3C);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stock-indicator {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4CAF50;
+            box-shadow: 0 0 6px #4CAF50;
+            animation: stockPulse 2s infinite;
+        }
+
+        @keyframes stockPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.2); }
+        }
+
+        .control-hub {
+            background: linear-gradient(145deg, #37474f, #263238);
+            border: 4px solid #1a1a1a;
+            border-radius: 20px;
+            padding: 18px;
+            margin-bottom: 15px;
+            box-shadow: 
+                inset 0 0 25px rgba(0, 0, 0, 0.6),
+                0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .input-zone {
+            background: linear-gradient(145deg, #1a1a2e, #0f0f23);
+            border: 3px solid #0f3460;
+            padding: 10px;
+            text-align: center;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .input-zone::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.1), transparent);
+            animation: inputScan 4s infinite;
+        }
+
+        @keyframes inputScan {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .input-display {
+            color: #00ff88;
+            font-family: 'Orbitron', monospace;
+            font-size: 1.1em;
+            font-weight: 700;
+            text-shadow: 0 0 15px #00ff88;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .premium-keypad {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .premium-key {
+            background: linear-gradient(145deg, #607d8b, #455a64);
+            border: 2px solid #37474f;
+            border-radius: 12px;
+            padding: 12px;
+            font-size: 1em;
+            font-weight: 700;
+            color: #ecf0f1;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px #263238;
+            font-family: 'Orbitron', monospace;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .premium-key::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.3s ease;
+        }
+
+        .premium-key:hover::before {
+            width: 100px;
+            height: 100px;
+        }
+
+        .premium-key:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px #263238;
+        }
+
+        .premium-key.confirm {
+            background: linear-gradient(145deg, #4CAF50, #388E3C);
+            border-color: #2E7D32;
+            box-shadow: 0 4px #1B5E20;
+        }
+
+        .premium-key.clear {
+            background: linear-gradient(145deg, #f44336, #c62828);
+            border-color: #b71c1c;
+            box-shadow: 0 4px #8e0000;
+        }
+
+        .payment-hub {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .payment-method {
+            background: linear-gradient(145deg, #667eea, #764ba2);
+            border: 3px solid #1a1a2e;
+            border-radius: 15px;
+            padding: 15px 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            color: white;
+            font-weight: 600;
+            font-size: 0.75em;
+            box-shadow: 0 6px #4a5568;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .payment-method::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(from 0deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            animation: paymentSpin 3s linear infinite;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .payment-method:hover::before {
+            opacity: 1;
+        }
+
+        @keyframes paymentSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .payment-method:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 12px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .payment-method:active {
+            transform: translateY(3px);
+            box-shadow: 0 3px #4a5568;
+        }
+
+        .payment-icon {
+            font-size: 1.8em;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .dispensing-chamber {
+            background: linear-gradient(145deg, #2c3e50, #1a252f);
+            border: 5px solid #34495e;
+            border-radius: 15px;
+            height: 65px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #bdc3c7;
+            font-weight: 600;
+            font-size: 0.85em;
+            box-shadow: 
+                inset 0 0 20px rgba(0, 0, 0, 0.8),
+                0 5px 15px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dispensing-chamber::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, #e91e63, #9c27b0, #673ab7);
+            transform: translateX(-100%);
+            transition: transform 2s ease;
+        }
+
+        .dispensing-chamber.dispensing::before {
+            transform: translateX(0);
+        }
+
+        .product-drop {
+            position: absolute;
+            width: 45px;
+            height: 35px;
+            background: linear-gradient(145deg, #e91e63, #ad1457);
+            border-radius: 8px;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: all 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.7em;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(233, 30, 99, 0.4);
+        }
+
+        .product-drop.falling {
+            top: 20px;
+            animation: dropBounce 0.6s ease-out 1.2s;
+        }
+
+        @keyframes dropBounce {
+            0% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(5px); }
+            100% { transform: translateX(-50%) translateY(0); }
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .premium-modal {
+            background: linear-gradient(145deg, #ffffff, #f8f9fa);
+            border-radius: 25px;
+            padding: 30px;
+            text-align: center;
+            max-width: 380px;
+            position: relative;
+            box-shadow: 
+                0 20px 60px rgba(0, 0, 0, 0.4),
+                0 0 40px rgba(233, 30, 99, 0.1);
+            border: 3px solid transparent;
+            background-clip: padding-box;
+        }
+
+        .premium-modal::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            background: linear-gradient(45deg, #e91e63, #9c27b0, #673ab7, #3f51b5);
+            border-radius: 25px;
+            z-index: -1;
+            animation: modalGlow 3s ease-in-out infinite;
+        }
+
+        @keyframes modalGlow {
+            0%, 100% { opacity: 0.7; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.02); }
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: linear-gradient(135deg, #e91e63, #ad1457);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            cursor: pointer;
+            font-size: 1.2em;
+            box-shadow: 0 4px 15px rgba(233, 30, 99, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .modal-close:hover {
+            transform: scale(1.1) rotate(90deg);
+        }
+
+        .modal-title {
+            color: #2c3e50;
+            font-size: 1.3em;
+            font-weight: 700;
+            margin-bottom: 15px;
+            font-family: 'Orbitron', monospace;
+        }
+
+        .payment-interface {
+            width: 200px;
+            height: 200px;
+            margin: 20px auto;
+            border: 4px solid #e1e8ed;
+            border-radius: 20px;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9em;
+            color: #666;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .qr-code-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .verify-payment {
+            background: linear-gradient(135deg, #4CAF50, #388E3C);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 700;
+            margin-top: 20px;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.3);
+            font-family: 'Orbitron', monospace;
+        }
+
+        .verify-payment:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(76, 175, 80, 0.4);
+        }
+
+        .success-animation {
+            animation: successPulse 0.6s ease-in-out;
+        }
+
+        @keyframes successPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @media (max-width: 480px) {
+            .vending-machine {
+                max-width: 380px;
+                padding: 15px;
+            }
+            .brand-header { font-size: 1em; }
+            .product-showcase { height: 200px; }
+            .premium-modal { max-width: 320px; padding: 25px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="vending-machine">
+        <div class="brand-header">
+            FEMCARE PRO
+        </div>
+        <div class="subtitle">Smart Menstrual Care Solutions</div>
+        
+        <div class="status-indicators">
+            <div class="status-led power"></div>
+            <div class="status-led network"></div>
+            <div class="status-led inventory"></div>
+        </div>
+
+        <div class="smart-display">
+            <div class="display-content" id="main-display">
+                🌸 Welcome! Choose Your Care Product 🌸
+            </div>
+        </div>
+
+        <div class="product-showcase">
+            <div class="showcase-title">Premium Care Collection</div>
+            <div class="product-grid">
+                <div class="premium-product" data-code="A1" data-name="DivaCup Menstrual Cup" data-price="699" onclick="selectProduct(this)">
+                    <div class="product-code">A1</div>
+                    <div class="stock-indicator"></div>
+                    <img src="https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=200&h=200&fit=crop&crop=center" alt="Menstrual Cup" class="product-image" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjIwMCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiNmOGY5ZmEiLz48Y2lyY2xlIGN4PSIxMDAiIGN5PSI3MCIgcj0iMjUiIGZpbGw9IiNlOTFlNjMiIG9wYWNpdHk9IjAuOSIvPjxlbGxpcHNlIGN4PSIxMDAiIGN5PSIxMjAiIHJ4PSIyMiIgcnk9IjM1IiBmaWxsPSIjZTkxZTYzIiBvcGFjaXR5PSIwLjciLz48L3N2Zz4='">
+                    <div class="product-title">Medical Grade Cup</div>
+                    <div class="product-price">₹699</div>
+                </div>
+
+                <div class="premium-product" data-code="A2" data-name="Organic Cotton Pads" data-price="399" onclick="selectProduct(this)">
+                    <div class="product-code">A2</div>
+                    <div class="stock-indicator"></div>
+                    <img src="https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=200&h=200&fit=crop&crop=center" alt="Organic Pads" class="product-image" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjIwMCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiNmOGY5ZmEiLz48ZWxsaXBzZSBjeD0iMTAwIiBjeT0iMTAwIiByeD0iNjAiIHJ5PSI0MCIgZmlsbD0iIzM0OTk5OCIgb3BhY2l0eT0iMC44Ii8+PHRleHQgeD0iMTAwIiB5PSIxMDUiIGZpbGw9IndoaXRlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTgiIHRleHQtYW5jaG9yPSJtaWRkbGUiPk9SR0FOSUM8L3RleHQ+PC9zdmc+'">
+                    <div class="product-title">Organic Cotton Pads</div>
+                    <div class="product-price">₹399</div>
+                </div>
+
+                <div class="premium-product" data-code="B1" data-name="Period Underwear" data-price="999" onclick="selectProduct(this)">
+                    <div class="product-code">B1</div>
+                    <div class="stock-indicator"></div>
+                    <img src="https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=200&h=200&fit=crop&crop=center" alt="Period Underwear" class="product-image" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjIwMCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiNmOGY5ZmEiLz48cGF0aCBkPSJNNTAgODBDODAgODAgMTIwIDgwIDE1MCA4MEMxNTAgMTEwIDE1MCAxNDAgMTIwIDE0MEM4MCA0MCBtMCA2MEMxNTAgOTAgNjAgOTBaIiBmaWxsPSIjOTMzM2VhIiBvcGFjaXR5PSIwLjgiLz48L3N2Zz4='">
+                    <div class="product-title">Period Underwear</div>
+                    <div class="product-price">₹999</div>
+                </div>
+
+                <div class="premium-product" data-code="B2" data-name="Menstrual Disc" data-price="599" onclick="selectProduct(this)">
+                    <div class="product-code">B2</div>
+                    <div class="stock-indicator"></div>
+                    <img src="https://images.unsplash.com/photo-1609205669036-e09b2a79b3d5?w=200&h=200&fit=crop&crop=center" alt="Menstrual Disc" class="product-image" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjIwMCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiNmOGY5ZmEiLz48Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMDAiIHI9IjQwIiBmaWxsPSIjZjU5ZTBiIiBvcGFjaXR5PSIwLjgiLz48Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMDAiIHI9IjI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmNTllMGIiIHN0cm9rZS13aWR0aD0iNCIvPjwvc3ZnPg=='">
+                    <div class="product-title">Flex Menstrual Disc</div>
+                    <div class="product-price">₹599</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="control-hub">
+            <div class="input-zone">
+                <div class="input-display" id="input-display">
+                    SELECT CODE: _
+                </div>
+            </div>
+            
+            <div class="premium-keypad">
+                <button class="premium-key" onclick="inputCode('A')">A</button>
+                <button class="premium-key" onclick="inputCode('B')">B</button>
+                <button class="premium-key" onclick="inputCode('1')">1</button>
+                <button class="premium-key" onclick="inputCode('2')">2</button>
+                <button class="premium-key clear" onclick="clearInput()">CLR</button>
+                <button class="premium-key confirm" onclick="confirmSelection()">✓</button>
+                <button class="premium-key" onclick="inputCode('0')">0</button>
+                <button class="premium-key" onclick="inputCode('#')">#</button>
+            </div>
+
+            <div class="payment-hub">
+                <div class="payment-method" onclick="showPaymentModal('nfc')">
+                    <div class="payment-icon">📱</div>
+                    <div>NFC</div>
+                    <div>CARD</div>
+                </div>
+                <div class="payment-method" onclick="showPaymentModal('qr')">
+                    <div class="payment-icon">🔲</div>
+                    <div>QR</div>
+                    <div>SCAN</div>
+                </div>
+                <div class="payment-method" onclick="showPaymentModal('upi')">
+                    <div class="payment-icon">💳</div>
+                    <div>UPI</div>
+                    <div>PAY</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="dispensing-chamber" id="dispensing-chamber">
+            🌸 Your Product Will Appear Here 🌸
+            <div class="product-drop" id="product-drop"></div>
+        </div>
+    </div>
+
+    <!-- NFC Payment Modal -->
+    <div class="modal-overlay" id="nfc-modal">
+        <div class="premium-modal">
+            <button class="modal-close" onclick="closePaymentModal()">&times;</button>
+            <h3 class="modal-title">NFC Contactless Payment</h3>
+            <p style="color: #666; margin-bottom: 15px;" id="nfc-amount">Amount: ₹0</p>
+            <div class="payment-interface">
+                <div style="text-align: center;">
+                    <div style="font-size: 3em; margin-bottom: 15px; color: #667eea;">📱</div>
+                    <div style="font-weight: 600; margin-bottom: 10px; color: #2c3e50;">Tap Your NFC Card</div>
+                    <div style="font-size: 0.9em; color: #7f8c8d;">Hold card near the reader</div>
+                    <div style="margin-top: 15px; padding: 10px; background: #e8f5e8; border-radius: 8px; color: #27ae60;">
+                        🟢 NFC Reader Active
+                    </div>
+                </div>
+            </div>
+            <button class="verify-payment" onclick="processPayment('nfc')">Verify & Pay</button>
+        </div>
+    </div>
+
+    <!-- QR Payment Modal -->
+    <div class="modal-overlay" id="qr-modal">
+        <div class="premium-modal">
+            <button class="modal-close" onclick="closePaymentModal()">&times;</button>
+            <h3 class="modal-title">QR Code Payment</h3>
+            <p style="color: #666; margin-bottom: 15px;" id="qr-amount">Amount: ₹0</p>
+            <div class="payment-interface">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi://pay?pa=femcare.vending@paytm%26pn=FemCare%20Pro%26am=599%26cu=INR" alt="QR Code" class="qr-code-img">
+            </div>
+            <p style="font-size: 0.9em; color: #666; margin-top: 10px;">Scan with any UPI app to pay</p>
+            <button class="verify-payment" onclick="processPayment('qr')">Verify & Pay</button>
+        </div>
+    </div>
+
+    <!-- UPI Payment Modal -->
+    <div class="modal-overlay" id="upi-modal">
+        <div class="premium-modal">
+            <button class="modal-close" onclick="closePaymentModal()">&times;</button>
+            <h3 class="modal-title">UPI Direct Payment</h3>
+            <p style="color: #666; margin-bottom: 15px;" id="upi-amount">Amount: ₹0</p>
+            <div class="payment-interface">
+                <div style="text-align: center; padding: 20px;">
+                    <div style="font-size: 3em; margin-bottom: 15px; color: #9c27b0;">💳</div>
+                    <div style="font-weight: 600; margin-bottom: 15px; color: #2c3e50;">UPI Payment</div>
+                    <div style="background: #f3e5f5; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                        <div style="font-weight: 600; color: #7b1fa2;">UPI ID</div>
+                        <div style="font-family: 'Orbitron', monospace; font-size: 0.9em; color: #4a148c; margin-top: 5px;">femcare.vending@paytm</div>
+                    </div>
+                    <div style="font-size: 0.85em; color: #7f8c8d;">Open your UPI app and pay to this ID</div>
+                </div>
+            </div>
+            <button class="verify-payment" onclick="processPayment('upi')">Verify & Pay</button>
+        </div>
+    </div>
+
+    <script>
+        let currentInput = '';
+        let selectedProduct = null;
+        let currentPaymentMethod = '';
+        let isProcessing = false;
+
+        // Product selection
+        function selectProduct(element) {
+            document.querySelectorAll('.premium-product').forEach(product => {
+                product.classList.remove('selected');
+            });
+            element.classList.add('selected');
+            
+            const code = element.dataset.code;
+            const name = element.dataset.name;
+            const price = element.dataset.price;
+            
+            selectedProduct = { code, name, price };
+            currentInput = code;
+            updateInputDisplay();
+            updateMainDisplay(`✨ ${name} Selected - ₹${price} ✨`);
+        }
+
+        // Input handling
+        function inputCode(char) {
+            if (currentInput.length < 2) {
+                currentInput += char;
+                updateInputDisplay();
+                
+                // Auto-highlight product if valid code
+                const product = document.querySelector(`[data-code="${currentInput}"]`);
+                if (product && currentInput.length === 2) {
+                    selectProduct(product);
+                }
+            }
+        }
+
+        function clearInput() {
+            currentInput = '';
+            selectedProduct = null;
+            updateInputDisplay();
+            updateMainDisplay('🌸 Welcome! Choose Your Care Product 🌸');
+            document.querySelectorAll('.premium-product').forEach(product => {
+                product.classList.remove('selected');
+            });
+        }
+
+        function updateInputDisplay() {
+            document.getElementById('input-display').textContent = `SELECT CODE: ${currentInput}_`;
+        }
+
+        function updateMainDisplay(message) {
+            document.getElementById('main-display').textContent = message;
+        }
+
+        function confirmSelection() {
+            if (!currentInput) {
+                updateMainDisplay('⚠️ Please Enter Product Code ⚠️');
+                return;
+            }
+
+            const product = document.querySelector(`[data-code="${currentInput}"]`);
+            if (!product) {
+                updateMainDisplay('❌ Invalid Code - Try Again ❌');
+                return;
+            }
+
+            if (!selectedProduct) {
+                selectProduct(product);
+            }
+            
+            updateMainDisplay(`💳 ${selectedProduct.name} - ₹${selectedProduct.price} | Choose Payment 💳`);
+        }
+
+        // Payment handling
+        function showPaymentModal(method) {
+            if (!selectedProduct) {
+                updateMainDisplay('⚠️ Select Product First ⚠️');
+                return;
+            }
+            
+            if (isProcessing) return;
+
+            currentPaymentMethod = method;
+            const modal = document.getElementById(`${method}-modal`);
+            const amountElement = document.getElementById(`${method}-amount`);
+            
+            amountElement.textContent = `Amount: ₹${selectedProduct.price}`;
+            modal.style.display = 'flex';
+            
+            updateMainDisplay(`💳 Proceed with ${method.toUpperCase()} Payment 💳`);
+            
+            // Update QR code with correct amount
+            if (method === 'qr') {
+                const qrImg = modal.querySelector('.qr-code-img');
+                qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi://pay?pa=femcare.vending@paytm%26pn=FemCare%20Pro%26am=${selectedProduct.price}%26cu=INR`;
+            }
+        }
+
+        function closePaymentModal() {
+            document.querySelectorAll('.modal-overlay').forEach(modal => {
+                modal.style.display = 'none';
+            });
+        }
+
+        function processPayment(method) {
+            if (isProcessing) return;
+            isProcessing = true;
+            
+            closePaymentModal();
+            updateMainDisplay('🔄 Verifying Payment... Please Wait 🔄');
+            
+            // Simulate payment processing
+            setTimeout(() => {
+                updateMainDisplay('✅ Payment Verified Successfully! ✅');
+                
+                setTimeout(() => {
+                    dispenseProduct();
+                }, 1500);
+                
+            }, 2500);
+        }
+
+        function dispenseProduct() {
+            updateMainDisplay('📦 Dispensing Your Product... 📦');
+            
+            const chamber = document.getElementById('dispensing-chamber');
+            const productDrop = document.getElementById('product-drop');
+            
+            chamber.classList.add('dispensing');
+            chamber.innerHTML = `🌸 Dispensing ${selectedProduct.name}... 🌸<div class="product-drop" id="product-drop"></div>`;
+            
+            const newProductDrop = document.getElementById('product-drop');
+            newProductDrop.textContent = selectedProduct.code;
+            
+            setTimeout(() => {
+                newProductDrop.classList.add('falling');
+                
+                setTimeout(() => {
+                    chamber.innerHTML = `✨ Collect Your ${selectedProduct.name} ✨<div class="product-drop falling" id="product-drop">${selectedProduct.code}</div>`;
+                    updateMainDisplay('🎉 Thank You! Collect Your Product Below 🎉');
+                    
+                    setTimeout(() => {
+                        resetMachine();
+                    }, 5000);
+                    
+                }, 1200);
+            }, 500);
+        }
+
+        function resetMachine() {
+            currentInput = '';
+            selectedProduct = null;
+            currentPaymentMethod = '';
+            isProcessing = false;
+            
+            updateInputDisplay();
+            updateMainDisplay('🌸 Welcome! Choose Your Care Product 🌸');
+            
+            const chamber = document.getElementById('dispensing-chamber');
+            chamber.classList.remove('dispensing');
+            chamber.innerHTML = '🌸 Your Product Will Appear Here 🌸<div class="product-drop" id="product-drop"></div>';
+            
+            document.querySelectorAll('.premium-product').forEach(product => {
+                product.classList.remove('selected');
+            });
+        }
+
+        // Modal click outside to close
+        document.querySelectorAll('.modal-overlay').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closePaymentModal();
+                }
+            });
+        });
+
+        // Initialize machine
+        updateInputDisplay();
+        updateMainDisplay('🌸 Welcome! Choose Your Care Product 🌸');
+        
+        // Add some interactive flourishes
+        setInterval(() => {
+            if (!selectedProduct && !isProcessing) {
+                const messages = [
+                    '🌸 Welcome! Choose Your Care Product 🌸',
+                    '💝 Premium Quality Menstrual Care 💝',
+                    '🌺 Your Health, Our Priority 🌺',
+                    '✨ Sustainable & Safe Products ✨'
+                ];
+                const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+                updateMainDisplay(randomMessage);
+            }
+        }, 8000);
+    </script>
+</body>
+</html>
